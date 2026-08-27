@@ -142,6 +142,38 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+/**
+ * GET /checkhealth
+ * Detailed health check endpoint with system info
+ */
+app.get('/checkhealth', (req, res) => {
+  const stats = conversationManager.getStats();
+  const uptime = process.uptime();
+  const memUsage = process.memoryUsage();
+
+  res.json({
+    status: 'healthy',
+    server: {
+      nodeVersion: process.version,
+      platform: process.platform,
+      uptime: `${Math.floor(uptime)}s`,
+      environment: process.env.NODE_ENV || 'development'
+    },
+    memory: {
+      heapUsed: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
+      rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`
+    },
+    sessions: {
+      total: stats.totalSessions,
+      active: stats.activeSessions,
+      inactive: stats.inactiveSessions,
+      totalMessages: stats.totalMessages
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling
 app.use((err, req, res, next) => {
   console.error('Error:', err);
