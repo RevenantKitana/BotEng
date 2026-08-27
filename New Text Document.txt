@@ -1,0 +1,50 @@
+Làm 1 bot service đơn giản tích hợp trực tiếp bằng gọi api backend, có bộ nhớ tạm dùng groq model: openai/gpt-oss-120b; không cần bảo mật, CORS;  tích hợp deploy render
+
+## 🤖 Đặc Điểm & Yêu Cầu của Bot Chatbot (Hoạt động 8)
+
+### 📌 Bối cảnh & Mục đích
+- Là một **"study buddy" chatbot** để học sinh luyện nói/viết về chủ đề gia đình.
+- Thời lượng cố định: **2 phút đếm ngược**.
+- Chủ đề: Thành viên gia đình nào hỗ trợ học sinh nhất và biểu hiện của sự hỗ trợ đó.
+
+---
+
+### 🔡 Logic Phản Hồi — Keyword Matching
+Bot không dùng AI tự do mà hoạt động theo **ma trận từ khóa có sẵn (rule-based)**:
+
+| Từ khóa học sinh nhập | Câu hỏi tiếp theo của bot |
+|---|---|
+| `mom / mother / mum` | Hỏi về điều mẹ làm khiến học sinh cảm thấy được hỗ trợ |
+| `dad / father` | Hỏi về điều bố làm |
+| `brother / sister / sibling` | Hỏi anh/chị/em thường làm gì giúp đỡ |
+| `grandma / grandpa / grandparent` | Hỏi ông/bà thể hiện sự hỗ trợ thế nào |
+| `aunt / uncle` | Hỏi về vai trò của cô/chú |
+| `cousin` | Hỏi về điều anh/chị/em họ làm |
+| `family / everyone / both parents` | Yêu cầu đưa ra 1 ví dụ cụ thể |
+| `friend / friends` | Dẫn học sinh quay về chủ đề gia đình |
+| `dog / cat / pet` | Phản hồi vui + hỏi lại về gia đình 🐾 |
+| `no one / nobody / no support` | Phản hồi nhẹ nhàng, sau đó **kết thúc conversation** |
+| *(Không khớp nhóm nào)* | `"That's interesting — can you tell me a bit more?"` |
+
+---
+
+### ⚙️ Quy Tắc Nghiệp Vụ
+
+| Yêu cầu | Chi tiết |
+|---|---|
+| **Điều kiện bắt đầu** | Học sinh bấm `"Start chatting →"` → đồng hồ 2 phút bắt đầu |
+| **Ưu tiên từ khóa** | Gia đình > Pet > Friend |
+| **Validation** | Nếu học sinh gửi tin nhắn rỗng → hiển thị lỗi: `"Type an answer first"` |
+| **Kết thúc hội thoại** | Hết 2 phút **hoặc** gặp nhóm `no one/nobody` → bot gửi: `"Time's up! Thanks for sharing. 🎉"` |
+| **Sau khi kết thúc** | Khóa khung nhập liệu, hiển thị nút `"Continue →"` |
+
+---
+
+### 🚫 Giới Hạn Thiết Kế
+- Bot **không phải AI generative** — chỉ là rule-based keyword matching.
+- **Không đánh giá nội dung** câu trả lời của học sinh (không tính điểm).
+- Tin nhắn mở đầu cố định: *"Who in your family supports you most? How do they show it?"*
+
+---
+
+**Tóm lại:** Bot này được thiết kế đơn giản, dễ implement — chỉ cần **pattern matching theo từ khóa** với một bảng phản hồi tĩnh, kết hợp timer 2 phút và validation input rỗng.
