@@ -1,12 +1,14 @@
 # Study Buddy Bot Backend
 
-A simple rule-based chatbot backend for language learning practice, focused on family-related conversations. Perfect for engaging students in speaking/writing practice with a fixed 2-minute timer.
+An AI-powered chatbot backend for language learning practice, focused on family-related conversations. Uses Groq API for natural conversational responses, with keyword matching fallback. Perfect for engaging students in speaking/writing practice with a fixed 2-minute timer.
 
 ## Features
 
-✅ **Rule-Based Keyword Matching** - No heavy AI, just smart pattern matching  
+✅ **AI-Powered Responses** - Groq API for natural, conversational replies  
+✅ **Smart Fallback** - Keyword matching when API unavailable  
 ✅ **Session Management** - Temporary in-memory storage with auto-cleanup  
 ✅ **2-Minute Timer** - Automatic conversation end  
+✅ **Conversation Context** - Bot remembers previous messages in session  
 ✅ **Input Validation** - Prevents empty messages  
 ✅ **CORS Enabled** - Ready for frontend integration  
 ✅ **Render-Ready** - Deploy with one click  
@@ -16,6 +18,7 @@ A simple rule-based chatbot backend for language learning practice, focused on f
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
+- Groq API Key (free at https://console.groq.com)
 
 ### Installation
 
@@ -30,8 +33,10 @@ Create a `.env` file (or set via Render dashboard):
 ```env
 PORT=3000
 NODE_ENV=production
-# GROQ_API_KEY=your_key_here  (if needed for future enhancements)
+GROQ_API_KEY=your_groq_api_key_here
 ```
+
+Get your free Groq API key: https://console.groq.com/keys
 
 ### Local Development
 
@@ -271,13 +276,15 @@ study-buddy-bot/
 
 ## Future Enhancements
 
+- [x] ✅ Integrate Groq API for generative responses
 - [ ] Persist sessions to database (PostgreSQL/MongoDB)
-- [ ] Integrate Groq API for generative responses
 - [ ] Add voice/audio support
 - [ ] Analytics dashboard
 - [ ] Multiple language support
 - [ ] User authentication
 - [ ] Response evaluation & scoring
+- [ ] Support for multiple AI models (OpenAI, Anthropic, etc.)
+- [ ] Response streaming for real-time feedback
 
 ---
 

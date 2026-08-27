@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { getKeywordResponse } = require('./keywords');
 const { ConversationManager } = require('./conversationManager');
+const { GroqClient } = require('./groqClient');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,8 +12,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Conversation manager instance
+// Initialize clients
 const conversationManager = new ConversationManager();
+const groqClient = new GroqClient();
 
 // Routes
 
@@ -35,7 +37,7 @@ app.post('/start', (req, res) => {
  * Send a message and get bot response
  * Body: { sessionId, message }
  */
-app.post('/chat', (req, res) => {
+app.post('/chat', async (req, res) => {
   const { sessionId, message } = req.body;
 
   // Validation
@@ -69,25 +71,51 @@ app.post('/chat', (req, res) => {
     });
   }
 
-  // Get bot response based on keywords
-  const botResponse = getKeywordResponse(message.toLowerCase());
+  let botMessage = null;
+  let isEnded = false;
+
+  // Try to get response from Groq API first
+  if (groqClient.isAvailable) {
+    try {
+      // Prepare conversation history for context
+      const history = session.messages.map(msg => [
+        { role: 'user', content: msg.user },
+        { role: 'assistant', content: msg.bot }
+      ]).flat();
+
+      botMessage = await groqClient.generateResponse(message, history);
+    } catch (error) {
+      console.error('Groq generation error:', error.message);
+    }
+  }
+
+  // Fallback to keyword matching if Groq fails or unavailable
+  if (!botMessage) {
+    const keywordResponse = getKeywordResponse(message.toLowerCase());
+    botMessage = keywordResponse.response;
+    isEnded = keywordResponse.shouldEnd;
+  }
 
   // Add to conversation history
   conversationManager.addMessage(sessionId, {
     user: message,
-    bot: botResponse.response,
+    bot: botMessage,
     timestamp: new Date().toISOString()
   });
 
-  // Check if conversation should end
-  const isEnded = botResponse.shouldEnd;
+  // Check for "no support" pattern to end conversation
+  if (!isEnded && message.toLowerCase().match(/\b(no one|nobody|no support)\b/)) {
+    isEnded = true;
+    botMessage = "Time's up! Thanks for sharing. 🎉";
+  }
+
   if (isEnded) {
     conversationManager.endSession(sessionId);
   }
 
   res.json({
     sessionId,
-    botMessage: botResponse.response,
+    botMessage,
     isEnded,
     elapsedTime: elapsedSeconds,
     timestamp: new Date().toISOString()
