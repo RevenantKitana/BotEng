@@ -29,6 +29,11 @@ class GroqClient {
     }
 
     try {
+      if (!this.apiKey) {
+        console.warn('⚠️  Groq API key is not set. Ensure GROQ_API_KEY is configured in .env');
+        return null;
+      }
+
       const systemPrompt = `You are a friendly and encouraging study buddy chatbot helping students practice English by discussing family members who support them. 
 
 Your role:
