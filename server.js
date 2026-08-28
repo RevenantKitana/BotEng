@@ -36,6 +36,11 @@ app.use((err, req, res, next) => {
 const conversationManager = new ConversationManager();
 const groqClient = new GroqClient();
 
+// Log startup info
+console.log('🚀 Bot Engine starting up...');
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Groq API available:', !!process.env.GROQ_API_KEY);
+
 // Load bot configuration
 const configPath = path.join(__dirname, 'Unit1_Discussion_Bot.txt');
 const configParser = new BotConfigParser(configPath);

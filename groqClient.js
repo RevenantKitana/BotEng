@@ -14,6 +14,9 @@ class GroqClient {
 
     if (!this.isAvailable) {
       console.log('⚠️  Groq API key not configured - using fallback responses');
+      console.log('   Set GROQ_API_KEY environment variable to enable AI responses');
+    } else {
+      console.log('✅ Groq API key detected - AI responses enabled');
     }
   }
 
@@ -81,6 +84,11 @@ Important: Keep responses concise (1-2 sentences), conversational, and natural.`
       return response.data.choices[0].message.content.trim();
     } catch (error) {
       console.error('Groq API error:', error.message);
+      if (error.response) {
+        console.error('  Status:', error.response.status);
+        console.error('  Data:', JSON.stringify(error.response.data, null, 2));
+      }
+      console.warn('⚠️  Falling back to keyword-based response (Groq API unavailable)');
       return null;
     }
   }

@@ -37,6 +37,13 @@ class BotAnalyzer {
         response = await this.groqClient.sendMessage(prompt);
       } else {
         // Fallback: use deterministic classification without GPT
+        console.log('⚠️  Groq client not available - using fallback analysis');
+        return this._getFallbackAnalysis(studentInput, state);
+      }
+      
+      // If response is null, Groq API failed - use fallback
+      if (!response) {
+        console.log('⚠️  Groq API returned no response - using fallback analysis');
         return this._getFallbackAnalysis(studentInput, state);
       }
       
@@ -54,6 +61,7 @@ class BotAnalyzer {
     } catch (error) {
       console.error('❌ Analysis error:', error.message);
       // Fall back to deterministic analysis
+      console.log('⚠️  Using fallback keyword-based analysis');
       return this._getFallbackAnalysis(studentInput, state);
     }
   }

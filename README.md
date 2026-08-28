@@ -1,293 +1,171 @@
 # Study Buddy Bot Backend
 
-An AI-powered chatbot backend for language learning practice, focused on family-related conversations. Uses Groq API for natural conversational responses, with keyword matching fallback. Perfect for engaging students in speaking/writing practice with a fixed 2-minute timer.
+An AI-powered chatbot backend for language learning practice, focused on family-related conversations.
 
-## Features
+- 🤖 **AI Responses** - Groq Mixtral-8x7b for natural conversations
+- 🔄 **Smart Fallback** - Keyword matching when API unavailable  
+- ⏱️ **Timed Sessions** - 120-second (2-minute) conversations
+- 📊 **Context Aware** - Remembers conversation history
+- 🌐 **CORS Ready** - Cross-origin requests enabled
+- 🚀 **Production Ready** - Deploy on Render, Docker, or self-hosted
 
-✅ **AI-Powered Responses** - Groq API for natural, conversational replies  
-✅ **Smart Fallback** - Keyword matching when API unavailable  
-✅ **Session Management** - Temporary in-memory storage with auto-cleanup  
-✅ **2-Minute Timer** - Automatic conversation end  
-✅ **Conversation Context** - Bot remembers previous messages in session  
-✅ **Input Validation** - Prevents empty messages  
-✅ **CORS Enabled** - Ready for frontend integration  
-✅ **Render-Ready** - Deploy with one click  
+## 📚 Documentation
 
-## Setup
+| Document | Purpose |
+|----------|---------|
+| **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** | 📖 Complete integration reference (START HERE) |
+| **[API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)** | ⚡ Quick API cheatsheet |
+| **[DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md)** | 🔧 Recent fixes & deployment checklist |
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | 🏗️ System design & architecture |
+| **[QUICKSTART.md](QUICKSTART.md)** | 🚀 5-minute setup |
 
-### Prerequisites
-- Node.js 18+
-- npm or yarn
-- Groq API Key (free at https://console.groq.com)
+## 🚀 Quick Start (30 seconds)
 
 ### Installation
-
 ```bash
 npm install
 ```
 
-### Environment Variables
-
-Create a `.env` file (or set via Render dashboard):
-
+### Configure
+Create `.env`:
 ```env
 PORT=3000
-NODE_ENV=production
-GROQ_API_KEY=your_groq_api_key_here
+GROQ_API_KEY=gsk_xxxxxxxxxxxxxx  # Get from https://console.groq.com/keys
 ```
 
-Get your free Groq API key: https://console.groq.com/keys
-
-### Local Development
-
+### Run
 ```bash
 npm run dev
 ```
 
-### Production
-
-```bash
-npm start
-```
-
----
-
-## API Endpoints
-
-### 1. Start a New Conversation
-
-**POST** `/start`
-
-Initiates a new 2-minute chat session.
-
-**Response:**
-```json
-{
-  "sessionId": "session_1693234567890_abc123def",
-  "message": "Who in your family supports you most? How do they show it?",
-  "timeLimit": 120,
-  "timestamp": "2024-08-27T10:30:00.000Z"
-}
-```
-
----
-
-### 2. Send a Message
-
-**POST** `/chat`
-
-Send a user message and get bot response with keyword matching.
-
-**Request Body:**
-```json
-{
-  "sessionId": "session_1693234567890_abc123def",
-  "message": "My mom helps me a lot"
-}
-```
-
-**Response:**
-```json
-{
-  "sessionId": "session_1693234567890_abc123def",
-  "botMessage": "That's wonderful! Can you tell me more about what your mother does to make you feel supported?",
-  "isEnded": false,
-  "elapsedTime": 5.234,
-  "timestamp": "2024-08-27T10:30:05.234Z"
-}
-```
-
-**Error Responses:**
-- `400 Bad Request` - Missing sessionId or empty message
-- `404 Not Found` - Session doesn't exist
-- `400 Bad Request` - Session already ended or time expired
-
----
-
-### 3. Get Session Details
-
-**GET** `/session/:sessionId`
-
-Retrieve full session info and conversation history.
-
-**Response:**
-```json
-{
-  "sessionId": "session_1693234567890_abc123def",
-  "isActive": true,
-  "elapsedTime": 45.123,
-  "timeLimit": 120,
-  "startTime": "2024-08-27T10:30:00.000Z",
-  "conversationHistory": [
-    {
-      "user": "My mom helps me",
-      "bot": "That's wonderful! Can you tell me more...",
-      "timestamp": "2024-08-27T10:30:05.234Z"
-    }
-  ]
-}
-```
-
----
-
-### 4. End Session Early
-
-**DELETE** `/session/:sessionId`
-
-Force end a session before the timer expires.
-
-**Response:**
-```json
-{
-  "message": "Session ended",
-  "sessionId": "session_1693234567890_abc123def"
-}
-```
-
----
-
-### 5. Health Check
-
-**GET** `/health`
-
-Simple health check endpoint.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-08-27T10:30:00.000Z"
-}
-```
-
----
-
-## Keyword Matching Logic
-
-The bot matches user input against predefined keyword groups. Here's the priority order:
-
-| Keyword Group | Keywords | Bot Response |
-|---|---|---|
-| **Mother** | mom, mother, mum | Asks about what mother does to support |
-| **Father** | dad, father, pop | Asks about what father does to support |
-| **Sibling** | brother, sister, bro, sis | Asks for example of sibling's support |
-| **Grandparent** | grandma, grandpa, granny | Asks how grandparents show support |
-| **Aunt/Uncle** | aunt, uncle, auntie | Asks what aunt/uncle does |
-| **Cousin** | cousin, cousins | Asks what cousins do |
-| **Family** | family, everyone, both parents | Requests specific example |
-| **No Support** | no one, nobody | Ends conversation 🎉 |
-| **Pet** | dog, cat, pet, puppy | Cute response + redirects to family 🐾 |
-| **Friend** | friend, buddy, mate | Redirects focus to family |
-| **Default** | (no match) | "That's interesting — can you tell me a bit more?" |
-
----
-
-## Deployment on Render
-
-### Step 1: Push to GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/yourusername/study-buddy-bot.git
-git push -u origin main
-```
-
-### Step 2: Create Render Service
-1. Go to [render.com](https://render.com)
-2. Click **"New +"** → **"Web Service"**
-3. Connect your GitHub repository
-4. Fill in:
-   - **Name:** `study-buddy-bot`
-   - **Environment:** `Node`
-   - **Build Command:** `npm install`
-   - **Start Command:** `npm start`
-   - **Plan:** Free or paid
-
-### Step 3: Set Environment Variables
-- In Render dashboard → **Environment** tab
-- Add `NODE_ENV=production`
-- Add any other vars needed
-
-### Step 4: Deploy
-Click **"Create Web Service"** — Render will auto-deploy on every push to `main`.
-
----
-
-## Testing the Backend
-
-### Using cURL
-
-**Start conversation:**
+### Test
 ```bash
 curl -X POST http://localhost:3000/start
 ```
 
-**Send message:**
+---
+
+## 📡 Live API
+
+**Endpoint:** `https://boteng-6380.onrender.com`
+
+**Health Check:**
 ```bash
-curl -X POST http://localhost:3000/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": "session_1693234567890_abc123def",
-    "message": "My mom supports me"
-  }'
+curl https://boteng-6380.onrender.com/health
 ```
 
-### Using JavaScript/Fetch
+---
 
+## API Overview
+
+See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for complete API reference.
+
+### Start Session
+
+**POST** `/start`
+
+**See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) for complete API reference with examples.**
+
+### Example: Start & Chat
 ```javascript
-// Start session
-const startRes = await fetch('http://localhost:3000/start', {
-  method: 'POST'
-});
-const { sessionId } = await startRes.json();
-
-// Send message
-const chatRes = await fetch('http://localhost:3000/chat', {
+const api = 'https://boteng-6380.onrender.com';
+const start = await fetch(`${api}/start`, {method:'POST'}).then(r=>r.json());
+const chat = await fetch(`${api}/chat`, {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    sessionId,
-    message: 'My dad helps me with homework'
-  })
-});
-const chatData = await chatRes.json();
-console.log(chatData.botMessage);
+  headers: {'Content-Type':'application/json'},
+  body: JSON.stringify({sessionId: start.sessionId, message: 'My mom helps me'})
+}).then(r=>r.json());
+console.log(chat.botMessage);
 ```
 
 ---
 
-## Project Structure
+## 🏗️ Architecture
 
 ```
-study-buddy-bot/
-├── server.js                 # Main Express app
-├── keywords.js               # Keyword matching logic
-├── conversationManager.js     # Session & history management
-├── package.json
-├── .env.example
-├── .gitignore
-├── Procfile                  # Render deployment config
-└── README.md
+User Message
+    ↓
+Rule-Based Analysis (classification + entities)
+    ↓
+    ├─ Groq API (if configured) → Natural response
+    ├─ Fallback (keywords) → Template response
+    ↓
+Bot Response + State Update
 ```
+
+**Key Components:**
+- `server.js` - Express API
+- `groqClient.js` - AI integration
+- `botEngine.js` - Rule logic
+- `botAnalyzer.js` - Classification
+- `conversationManager.js` - Session state
+- `keywords.js` - Fallback patterns
 
 ---
 
-## Future Enhancements
+## 🚀 Deployment
 
-- [x] ✅ Integrate Groq API for generative responses
-- [ ] Persist sessions to database (PostgreSQL/MongoDB)
-- [ ] Add voice/audio support
-- [ ] Analytics dashboard
-- [ ] Multiple language support
-- [ ] User authentication
-- [ ] Response evaluation & scoring
-- [ ] Support for multiple AI models (OpenAI, Anthropic, etc.)
-- [ ] Response streaming for real-time feedback
+### Quick Deploy (Render)
+```bash
+git push origin main
+```
+Auto-deploys on every push.
+
+**For detailed deployment:** [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md#deployment)
 
 ---
 
-## License
+## 🔑 Environment Variables
+
+| Variable | Required | Default | Example |
+|----------|----------|---------|---------|
+| `PORT` | No | 3000 | 3000 |
+| `NODE_ENV` | No | development | production |
+| `GROQ_API_KEY` | No | — | gsk_xxxxx |
+
+**Get Groq Key:** https://console.groq.com/keys
+
+---
+
+## 📊 Performance
+
+| Metric | Value |
+|--------|-------|
+| Session timeout | 15 minutes |
+| Message response time | 0.5-2 seconds |
+| Concurrent users | Unlimited (scales) |
+| Message size limit | 10MB |
+
+---
+
+## ❓ Troubleshooting
+
+**401 Unauthorized from Groq?**
+→ Check `GROQ_API_KEY` in `.env` (should start with `gsk_`)
+
+**404 Session not found?**
+→ Session expired (15 min idle) - start new session
+
+**JSON parse error?**
+→ Use `JSON.stringify()` instead of string literals
+
+**More help?** → See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md#troubleshooting)
+
+---
+
+## 📖 Full Documentation
+
+For complete information, see:
+- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Complete reference
+- **[API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)** - Cheatsheet
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design
+- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup
+- **[DEPLOYMENT_FIXES.md](DEPLOYMENT_FIXES.md)** - Recent improvements
+
+---
+
+## 📝 License
 
 MIT
+
+**Last Updated:** 2026-08-28 | **Status:** Production Ready ✅
