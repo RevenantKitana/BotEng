@@ -9,7 +9,7 @@ class GroqClient {
   constructor(apiKey = process.env.GROQ_API_KEY) {
     this.apiKey = apiKey;
     this.baseURL = 'https://api.groq.com/openai/v1';
-    this.model = 'mixtral-8x7b-32768'; // Free model alternative
+    this.model = 'openai/gpt-oss-120b'; // GPT-OSS 120B model
     this.isAvailable = !!apiKey;
 
     if (!this.isAvailable) {
@@ -68,16 +68,19 @@ Important: Keep responses concise (1-2 sentences), conversational, and natural.`
         {
           model: this.model,
           messages,
-          temperature: 0.7,
-          max_tokens: 150,
-          top_p: 0.9
+          temperature: 1,
+          max_completion_tokens: 2048,
+          top_p: 1,
+          stream: false,
+          reasoning_effort: 'medium',
+          stop: null
         },
         {
           headers: {
             Authorization: `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json'
           },
-          timeout: 10000 // 10 second timeout
+          timeout: 30000 // 30 second timeout for reasoning model
         }
       );
 
