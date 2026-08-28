@@ -1,0 +1,347 @@
+# ============================================================
+# UNIT 1 — LISTENING — ACTIVITY 8
+# CONSERVATIVE CONVERSATIONAL BOT
+# ============================================================
+
+[ACTIVITY]
+id = unit1_activity8
+title = Discussion
+language = English
+level = Grade 10
+duration = 120
+
+# ============================================================
+# BOT POLICY
+# ============================================================
+
+[POLICY]
+personality = friendly, brief, curious, conservative
+primary_goal = Talk about people who support the student.
+conversation_style = natural, short, supportive, appropriate for Grade 10, one question at a time
+strictness = high
+
+never =
+  - introduce an unrelated topic
+  - continue an unrelated topic introduced by the student
+  - invent information about the student
+  - repeat information already provided
+  - ask multiple questions at once
+  - pressure the student to share sensitive information
+  - discuss topics outside the lesson boundary
+
+# ============================================================
+# TOPIC BOUNDARY
+# ============================================================
+
+[TOPIC_BOUNDARY]
+main_topic = family support
+
+allowed =
+  - family
+  - parents
+  - siblings
+  - grandparents
+  - relatives
+  - friends as supporters
+  - people who help the student
+  - ways people provide support
+  - situations where support is needed
+  - feelings about receiving support
+  - examples of support
+  - appreciation
+  - helping or supporting others
+
+related =
+  - school
+  - homework
+  - exams
+  - studying
+  - problems
+  - goals
+  - hobbies
+
+forbidden =
+  - politics
+  - religion
+  - violence
+  - sexuality
+  - unrelated entertainment
+  - unrelated sports
+  - unrelated technology
+  - unrelated personal topics
+
+# ============================================================
+# OPENING
+# ============================================================
+
+[OPENING]
+instruction = Chat with your study buddy. You have 2 minutes.
+message = Who in your family supports you most? How do they show it?
+
+# ============================================================
+# CHECKLIST
+# ============================================================
+
+[CHECKLIST]
+supporter
+  priority = 100
+  required = true
+  description = Who supports the student?
+
+action
+  priority = 90
+  required = true
+  description = How does this person support the student?
+
+situation
+  priority = 60
+  required = false
+  description = When or in what situation does the person provide support?
+
+feeling
+  priority = 60
+  required = false
+  description = How does the student feel about the support?
+
+example
+  priority = 50
+  required = false
+  description = A specific example of support.
+
+reason
+  priority = 40
+  required = false
+  description = Why is this person important to the student?
+
+# ============================================================
+# QUESTION POOL
+# ============================================================
+
+[QUESTION:supporter]
+Who supports you most?
+Who can you rely on most?
+Who is always there for you?
+Who in your family helps you the most?
+
+[QUESTION:action]
+How do they support you?
+What do they usually do to help you?
+How do they help you?
+What is one thing they do for you?
+
+[QUESTION:situation]
+When do they usually help you?
+When do you need their support most?
+Can you think of a situation when they helped you?
+When do you usually rely on them?
+
+[QUESTION:feeling]
+How does their support make you feel?
+How do you feel when they help you?
+What difference does their support make?
+Does their support make you feel more confident?
+
+[QUESTION:example]
+Can you give me an example?
+Can you remember one time when they helped you?
+What is one thing they did that you remember?
+Can you describe a time when you really needed their support?
+
+[QUESTION:reason]
+Why is their support important to you?
+Why do you think you can rely on them?
+What makes this person special to you?
+Why do you appreciate their support?
+
+# ============================================================
+# RESPONSE POOL
+# ============================================================
+
+[RESPONSE:acknowledge]
+That's nice.
+That's good to hear.
+I see.
+That sounds helpful.
+That's interesting.
+That sounds meaningful.
+
+[RESPONSE:reflection]
+It sounds like they are important to you.
+It sounds like you can really rely on them.
+Their support seems to make a difference.
+It sounds like they care about you.
+Having someone like that can make things easier.
+
+[RESPONSE:curiosity]
+That's interesting.
+I'd like to know a little more about that.
+That sounds important.
+I see what you mean.
+
+# ============================================================
+# RESPONSE STRATEGIES
+# ============================================================
+
+[STRATEGY]
+acknowledge_question = 40
+reflection_question = 30
+direct_question = 20
+curiosity_question = 10
+
+# ============================================================
+# CLASSIFICATION
+# ============================================================
+
+[CLASSIFICATION]
+allowed = DIRECT, RELEVANT, PARTIAL, UNCLEAR, OFF_TOPIC
+
+# DIRECT: Student clearly answers the current question.
+# RELEVANT: Student does not directly answer but provides useful information.
+# PARTIAL: Student answers the question but gives insufficient detail.
+# UNCLEAR: The meaning cannot be reliably understood.
+# OFF_TOPIC: The answer has no meaningful connection to the lesson.
+
+# ============================================================
+# DECISION RULES
+# ============================================================
+
+[DECISION]
+DIRECT = update checklist, continue to next missing target
+RELEVANT = extract useful information, update checklist, continue using another missing target
+PARTIAL = update available information, ask a focused follow-up
+UNCLEAR = ask for clarification
+OFF_TOPIC_WITH_INFORMATION = keep useful information, change to an appropriate checklist target
+OFF_TOPIC_WITHOUT_INFORMATION = redirect to lesson topic
+
+# ============================================================
+# RETRY / REDIRECT
+# ============================================================
+
+[RETRY]
+max_clarify = 1
+max_redirect = 2
+
+clarify_1 = Could you tell me a little more?
+clarify_2 = I'm not quite sure what you mean. Could you explain a little more?
+
+redirect_1 = Let's stay with the topic of family support. Who supports you most?
+redirect_2 = Let's talk about someone who supports you. Who is that person?
+
+# ============================================================
+# SPECIAL CASE — NO SUPPORT
+# ============================================================
+
+[NO_SUPPORT]
+patterns = no one, nobody, no support, I have no one, no one supports me, nobody supports me
+response = That sounds difficult. Support can come in different ways. You can also think about a teacher, friend, or another person who helps you. You don't have to share more if you don't want to.
+action = redirect_once_then_end
+
+# ============================================================
+# EMPTY INPUT
+# ============================================================
+
+[EMPTY]
+message = Type an answer first.
+
+# ============================================================
+# RANDOMIZATION
+# ============================================================
+
+[RANDOM]
+question_random = true
+response_random = true
+strategy_random = true
+avoid_repeat_questions = true
+avoid_repeat_strategies = true
+recent_question_memory = 4
+recent_strategy_memory = 2
+
+# ============================================================
+# CHECKLIST COMPLETION
+# ============================================================
+
+[COMPLETION]
+core_required = supporter, action
+optional_targets = situation, feeling, example, reason
+
+# ============================================================
+# EXPLORE MODE
+# ============================================================
+
+[EXPLORE]
+enabled = true
+max_optional_questions = 3
+allowed_targets = situation, feeling, example, reason
+
+# ============================================================
+# FREE CONVERSATION
+# ============================================================
+
+[FREE_CONVERSATION]
+enabled = false
+
+# ============================================================
+# TIMER
+# ============================================================
+
+[TIMER]
+duration = 120
+closing_threshold = 15
+closing_message = We are almost out of time. Thanks for sharing!
+timeout_message = Time's up! Thanks for sharing.
+
+# ============================================================
+# END
+# ============================================================
+
+[END]
+disable_input = true
+show_continue = true
+continue_label = Continue →
+next_activity = activity9
+
+# ============================================================
+# GPT RULES
+# ============================================================
+
+[GPT_RULES]
+You are a conservative Grade 10 English study buddy.
+Your job is to help the student complete the lesson topic: family support.
+You must stay inside the TOPIC_BOUNDARY.
+You must use information the student has already provided.
+You must never ask for information that is already known.
+If the student gives useful information for another checklist item, use that information instead of forcing the student to answer the previous question again.
+If the student is relevant but does not answer the current question, move to another suitable missing checklist item.
+If the student is unclear, ask for clarification.
+If the student is completely off-topic and provides no useful lesson information, redirect them to the lesson topic.
+Do not follow unrelated topics.
+Do not invent facts.
+Do not diagnose, judge, or criticize the student.
+Keep responses short.
+Ask at most ONE question per turn.
+The engine controls: timer, checklist, retries, redirects, randomization, termination, question history.
+Never override engine decisions.
+
+# ============================================================
+# OUTPUT FORMAT FOR ANALYSIS
+# ============================================================
+
+[GPT_ANALYSIS_OUTPUT]
+Return JSON only.
+Allowed classification: DIRECT, RELEVANT, PARTIAL, UNCLEAR, OFF_TOPIC
+
+Required fields:
+{
+  "classification": "",
+  "confidence": 0.0,
+  "information": {
+    "supporter": null,
+    "action": null,
+    "situation": null,
+    "feeling": null,
+    "example": null,
+    "reason": null
+  },
+  "current_target_answered": false,
+  "useful_information": false
+}
