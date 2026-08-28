@@ -42,21 +42,48 @@ console.log('Environment:', process.env.NODE_ENV || 'development');
 console.log('Groq API available:', !!process.env.GROQ_API_KEY);
 
 // Load bot configuration
-const configPath = path.join(__dirname, 'Unit1_Discussion_Bot.txt');
-const configParser = new BotConfigParser(configPath);
-const parseResult = configParser.parse();
+let botConfig = null;
+let configError = null;
 
-if (!parseResult.success) {
-  console.error('❌ Config parse errors:', parseResult.errors);
-  process.exit(1);
+try {
+  const configPath = path.join(__dirname, 'Unit1_Discussion_Bot.txt');
+  console.log('📂 Loading config from:', configPath);
+  
+  const configParser = new BotConfigParser(configPath);
+  const parseResult = configParser.parse();
+
+  if (!parseResult.success) {
+    configError = parseResult.errors;
+    console.error('❌ Config parse errors:', parseResult.errors);
+  } else {
+    botConfig = parseResult.config;
+    console.log('✅ Bot configuration loaded successfully');
+  }
+} catch (error) {
+  configError = error.message;
+  console.error('❌ Failed to load config:', error.message);
+  console.error('   Stack:', error.stack);
 }
 
-const botConfig = parseResult.config;
-console.log('✅ Bot configuration loaded successfully');
+// Initialize bot engine and analyzer (with fallback if config failed)
+let botEngine = null;
+let botAnalyzer = null;
 
-// Initialize bot engine and analyzer
-const botEngine = new BotEngine(botConfig);
-const botAnalyzer = new BotAnalyzer(botConfig, groqClient);
+if (botConfig) {
+  botEngine = new BotEngine(botConfig);
+  botAnalyzer = new BotAnalyzer(botConfig, groqClient);
+} else {
+  console.warn('⚠️  Running with minimal config (config loading failed)');
+  // Create minimal fallback config
+  botConfig = {
+    OPENING: { message: 'Who supports you most in your family?' },
+    TIMER: { duration: 120, closing_threshold: 15 },
+    EMPTY: { message: 'Please type something to continue.' },
+    GPT_RULES: ''
+  };
+  botEngine = new BotEngine(botConfig);
+  botAnalyzer = new BotAnalyzer(botConfig, groqClient);
+}
 
 // Routes
 
@@ -65,24 +92,29 @@ const botAnalyzer = new BotAnalyzer(botConfig, groqClient);
  * Start a new conversation session with rule-based bot state
  */
 app.post('/start', (req, res) => {
-  // Initialize state manager
-  const stateManager = new BotStateManager(botConfig);
-  
-  const sessionId = conversationManager.createSession({
-    state: stateManager.getState(),
-    config: botConfig
-  });
-  
-  const opening = botConfig.OPENING || {};
-  const timer = botConfig.TIMER || {};
-  
-  res.json({
-    sessionId,
-    message: opening.message || 'Who in your family supports you most?',
-    instruction: opening.instruction || 'Chat with your study buddy.',
-    timeLimit: timer.duration || 120, // 2 minutes in seconds
-    timestamp: new Date().toISOString()
-  });
+  try {
+    // Initialize state manager
+    const stateManager = new BotStateManager(botConfig);
+    
+    const sessionId = conversationManager.createSession({
+      state: stateManager.getState(),
+      config: botConfig
+    });
+    
+    const opening = botConfig.OPENING || {};
+    const timer = botConfig.TIMER || {};
+    
+    res.json({
+      sessionId,
+      message: opening.message || 'Who in your family supports you most?',
+      instruction: opening.instruction || 'Chat with your study buddy.',
+      timeLimit: timer.duration || 120, // 2 minutes in seconds
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error starting session:', error.message);
+    res.status(500).json({ error: 'Failed to start session', details: error.message });
+  }
 });
 
 /**
@@ -366,9 +398,41 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
+  console.log('');
+  console.log('═══════════════════════════════════════════════════════');
   console.log(`🤖 Study Buddy Bot Backend running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  if (configError) {
+    console.log(`⚠️  Config error: ${configError}`);
+    console.log('   → Using fallback configuration');
+  }
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('✅ Server is ready to accept connections');
+  console.log('');
+});
+
+// Handle server errors
+server.on('error', (err) => {
+  console.error('❌ Server error:', err);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
 
 module.exports = app;
